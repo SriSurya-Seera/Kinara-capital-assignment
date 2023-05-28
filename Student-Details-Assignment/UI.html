@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Kinara Capital SDE Home assignment</title>
+    <style>
+        .header {
+            display: flex;
+            justify-content: center;
+            color: green;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+
+        thead {
+            background: #648c64;
+        }
+
+        th, td {
+            padding: 8px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+
+        th {
+            margin-right: 5px;
+        }
+
+        tr:nth-child(even) {
+            background-color: #dadcda;
+        }
+
+        .pagination {
+            margin-top: 80px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .pagination a {
+            float: left;
+            padding: 8px 16px;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .column-header {
+            color: #ffffff;
+        }
+
+        #studentsTable {
+            table-layout: fixed;
+            margin-top: 80px;
+        }
+
+        .prev-button, .next-button {
+            background-color: green;
+            color: white;
+            border-radius: 5px 5px 5px 5px;
+        }
+
+        .next-button {
+            margin-left: 20px;
+        }
+
+        .active-page-button {
+            background-color: blue;
+            border-radius: 50%;
+            color: #ffffff;
+        }
+
+        .active-page-button, .inactive-page-button {
+            margin-left: 20px;
+        }
+
+        .inactive-page-button {
+            color: #000000;
+            border-radius: 50%;
+        }
+
+        .active-page-button:hover, .inactive-page-button:hover, .prev-button:hover, .next-button:hover {
+            border: 2px solid #000000;
+        }
+
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1 class="header">STUDENT DETAILS</h1>
+
+    <table id="studentsTable">
+        <thead>
+            <tr>
+                <th class="column-header">Id</th>
+                <th class="column-header">Student Name</th>
+                <th class="column-header">Age</th>
+                <th class="column-header">Science</th>
+                 <th class="column-header">Maths</th>
+                 <th class="column-header">English</th>
+                 <th class="column-header">History</th>
+                <th class="column-header">Total_Marks</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div class="pagination"></div>
+
+    <script>
+        var currentPage = 1;
+        var pageSize = 10;
+
+        function loadStudents(page) {
+            $.ajax({
+                url: "http://localhost:5000/students",
+                type: "GET",
+                data: {
+                    page: page,
+                    page_size: pageSize
+                },
+                success: function (response) {
+                    displayStudents(response);
+                },
+                error: function (xhr, status, error) {
+                    console.log("Error: " + error);
+                }
+            });
+        }
+
+        function displayStudents(students) {
+            var tableBody = $('#studentsTable tbody');
+            tableBody.empty(); // Clear previous data
+
+            students.forEach(function (student) {
+                var row = $("<tr>");
+                row.append($("<td>").text(student['Id']));
+                row.append($("<td>").text(student['Name']));
+                row.append($("<td>").text(student['Age']));
+                row.append($("<td>").text(student['Science']));
+                row.append($("<td>").text(student['Maths']));
+                row.append($("<td>").text(student['English']));
+                row.append($("<td>").text(student['History']));
+                row.append($("<td>").text(student['Total_Marks']));
+
+                tableBody.append(row);
+            });
+
+            updatePagination();
+        }
+
+        function updatePagination() {
+            var paginationDiv = $(".pagination");
+            paginationDiv.empty();
+
+            var prevLink = $("<a>");
+            prevLink.attr("href", "#");
+            prevLink.text("<<  Prev");
+            prevLink.attr("class", "prev-button");
+            if (currentPage == 1) {
+                prevLink.attr("style", "cursor: not-allowed; opacity: 0.5;");
+            }
+            prevLink.on("click", function (event) {
+                event.preventDefault();
+                if (currentPage > 1) {
+                    currentPage--;
+                    loadStudents(currentPage);
+                }
+            });
+
+            var nextLink = $("<a>");
+            nextLink.attr("href", "#");
+            nextLink.text("Next  >>");
+            nextLink.attr("class", "next-button");
+            nextLink.on("click", function (event) {
+                event.preventDefault();
+                currentPage++;
+                loadStudents(currentPage);
+            });
+
+            paginationDiv.append(prevLink);
+
+            for (var i = 1; i <= currentPage; i++) {
+                var pageLink = $("<a>");
+                pageLink.attr("href", "#");
+                pageLink.text(i);
+                
+                if(i == currentPage) {
+                    pageLink.attr("class", "active-page-button");
+                } else {
+                    pageLink.attr("class", "inactive-page-button");
+                }
+
+                pageLink.on("click", function (event) {
+                    event.preventDefault();
+                    currentPage = parseInt($(this).text());
+                    loadStudents(currentPage);
+                });
+
+                paginationDiv.append(pageLink);
+            }
+
+            paginationDiv.append(nextLink);
+        }
+
+        $(document).ready(function () {
+            loadStudents(currentPage);
+        });
+    </script>
+</body>
+</html>
